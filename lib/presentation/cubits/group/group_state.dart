@@ -18,6 +18,16 @@ class GroupLoaded extends GroupState {
   List<Object?> get props => [groups];
 }
 
+class SingleGroupLoaded extends GroupState {
+  final GroupEntity group;
+  SingleGroupLoaded({
+    required this.group,
+  });
+  @override
+  // TODO: implement props
+  List<Object?> get props => throw UnimplementedError();
+}
+
 class GroupLoading extends GroupState {
   @override
   List<Object?> get props => [];

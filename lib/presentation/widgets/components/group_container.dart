@@ -1,12 +1,18 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_image_stack/flutter_image_stack.dart';
 import 'package:general/general.dart';
+import 'package:laundry_washer/domain/entity/group_entity.dart';
 import 'package:laundry_washer/presentation/widgets/custom/custom_button.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 
 class GroupContainer extends StatelessWidget {
   final List<String> images;
-  const GroupContainer({super.key, required this.images});
+  final GroupEntity group;
+  const GroupContainer({
+    super.key,
+    required this.images,
+    required this.group,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -52,23 +58,50 @@ class GroupContainer extends StatelessWidget {
             ],
           ),
           const Spacer(),
-          FlutterImageStack(
-            imageList: images,
-            totalCount: 5,
-            itemCount: 3,
-            showTotalCount: true,
-            imageSource: ImageSource.Asset,
-            itemRadius: 6.h,
-            backgroundColor: Theme.of(context).primaryColor,
-            extraCountTextStyle: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w600,
-            ),
-            itemBorderColor: Theme.of(context).colorScheme.background,
+          Row(
+            children: group.members.map((e) {
+              return FutureBuilder(
+                future:
+                    FirebaseFirestore.instance.collection('crew').doc(e).get(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    final crew = snapshot.data!.data() as Map<String, dynamic>;
+                    return CircleAvatar(
+                      radius: 16,
+                      foregroundImage: NetworkImage(
+                        crew['imageLink'],
+                      ),
+                    );
+                  }
+                  return const SizedBox();
+                },
+              );
+            }).toList(),
           ),
+          // FlutterImageStack(
+          //   imageList: images,
+          //   totalCount: 5,
+          //   itemCount: 3,
+          //   showTotalCount: true,
+          //   imageSource: ImageSource.Asset,
+          //   itemRadius: 6.h,
+          //   backgroundColor: Theme.of(context).primaryColor,
+          //   extraCountTextStyle: const TextStyle(
+          //     color: Colors.white,
+          //     fontWeight: FontWeight.w600,
+          //   ),
+          //   itemBorderColor: Theme.of(context).colorScheme.background,
+          // ),
           const Spacer(),
-          const CustomButton(
+          CustomButton(
             text: 'Select',
+            ontap: () {
+              if (Navigator.canPop(context)) {
+                Navigator.pop(context, group);
+              }
+              show('go');
+              show('group: ${group.groupName}');
+            },
           ),
         ],
       ),

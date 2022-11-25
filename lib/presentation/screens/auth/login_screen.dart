@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:general/general.dart';
-import 'package:go_router/go_router.dart';
 import 'package:laundry_washer/domain/entity/group_entity.dart';
+import 'package:laundry_washer/presentation/cubits/group/group_cubit.dart';
+import 'package:laundry_washer/presentation/screens/auth/group_picking_screen.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 
+import '../../../dependency.dart';
+import '../../cubits/auth/auth_cubit.dart';
 import '../../widgets/custom/custom_button.dart';
 
 class LoginScreen extends StatefulWidget {
-  final GroupEntity? group;
-  const LoginScreen({super.key, this.group});
+  const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -25,6 +28,13 @@ class _LoginScreenState extends State<LoginScreen> {
     'Group D',
   ];
   String selectedGroup = 'Group A';
+  late GroupEntity group;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     // show('height pixel size: ${MediaQuery.of(context).size.height}');
@@ -114,7 +124,26 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       SizedBox(height: 3.h),
                       GestureDetector(
-                        onTap: () => context.push('/gp_screen'),
+                        onTap: () async {
+                          GroupEntity? group = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (ctx) => BlocProvider(
+                                create: (context) => sl<GroupCubit>(),
+                                child: const GroupPickingScreen(),
+                              ),
+                            ),
+                          );
+                          if (mounted) {
+                            if (group != null) {
+                              show('meron');
+                              setState(() {});
+                              this.group = group;
+                              groupSelectionController.text =
+                                  this.group.groupName;
+                            }
+                          }
+                        },
                         child: AbsorbPointer(
                           absorbing: true,
                           child: CustomTextField(
@@ -161,12 +190,46 @@ class _LoginScreenState extends State<LoginScreen> {
                         errorColor: Theme.of(context).colorScheme.error,
                       ),
                       SizedBox(height: 2.h),
-                      CustomButton(
-                        text: 'Sign In',
-                        radius: 8,
-                        ontap: () {
-                          context.push('/gp_screen');
+                      BlocListener<AuthCubit, AuthState>(
+                        listener: (context, state) {
+                          if (state is GroupLoading) {
+                            showDialog(
+                              context: context,
+                              builder: (ctx) {
+                                return const Center(
+                                  child: CircularProgressIndicator(),
+                                );
+                              },
+                            );
+                          }
                         },
+                        child: CustomButton(
+                          text: 'Sign In',
+                          radius: 8,
+                          ontap: () {
+                            if (passwordController.text == group.password) {
+                              context.read<AuthCubit>().logIn(group: group);
+                              // Navigator.pushReplacement(
+                              //   context,
+                              //   MaterialPageRoute(
+                              //     builder: (context) {
+                              //       return BlocProvider(
+                              //         create: (context) => sl<GroupCubit>(),
+                              //         child: const MainScreen(),
+                              //       );
+                              //     },
+                              //   ),
+                              // );
+                            } else {
+                              show('mali');
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: CustomText('Invalid Password'),
+                                ),
+                              );
+                            }
+                          },
+                        ),
                       ),
                       SizedBox(height: 2.h),
                       //*divider

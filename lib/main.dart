@@ -1,23 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:laundry_washer/core/constant/strings.dart';
 import 'package:laundry_washer/dependency.dart';
-import 'package:laundry_washer/domain/entity/group_entity.dart';
 import 'package:laundry_washer/firebase_options.dart';
+import 'package:laundry_washer/presentation/cubits/auth/auth_cubit.dart';
+import 'package:laundry_washer/presentation/cubits/bookings/bookings_cubit.dart';
 import 'package:laundry_washer/presentation/cubits/group/group_cubit.dart';
-import 'package:laundry_washer/presentation/screens/auth/group_picking_screen.dart';
-import 'package:laundry_washer/presentation/screens/auth/login_screen.dart';
-import 'package:laundry_washer/presentation/screens/main/main_screen.dart';
+import 'package:laundry_washer/presentation/cubits/record/record_cubit.dart';
+import 'package:laundry_washer/presentation/cubits/rider/rider_cubit.dart';
+import 'package:laundry_washer/presentation/cubits/today_booking/today_booking_cubit.dart';
+import 'package:laundry_washer/presentation/screens/auth/auth_manager.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import 'presentation/cubits/auth/auth_cubit.dart';
-
+SharedPreferences? globalSharedPreferences;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await init();
+  globalSharedPreferences = await SharedPreferences.getInstance();
+  // final today = CustomFunction.getDateToday();
+  // show('start: ${today['start']}');
+  // show('end: ${today['end']}');
   runApp(const MyApp());
 }
 
@@ -26,69 +31,45 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final GoRouter router = GoRouter(
-      initialLocation: '/',
-      routes: [
-        GoRoute(
-          path: '/',
-          builder: (context, state) {
-            return LoginScreen(
-              group: state.extra != null ? state.extra as GroupEntity : null,
-            );
-          },
-        ),
-        GoRoute(
-          path: '/gp_screen',
-          builder: (context, state) {
-            return const GroupPickingScreen();
-          },
-        ),
-        GoRoute(
-          path: '/main',
-          builder: (context, state) {
-            return const MainScreen();
-          },
-        ),
-      ],
-    );
     return ResponsiveSizer(
       builder: (p0, p1, p2) {
-        return MultiBlocProvider(
-          providers: [
-            BlocProvider(
-              create: (context) => sl<AuthCubit>()..userCheck(),
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'Washer',
+          theme: ThemeData(
+            useMaterial3: true,
+            primaryColor: kPrimaryColor,
+            colorScheme: const ColorScheme.light(
+              background: kSecondaryColorLightGrey,
+              secondary: kSecondaryColorYellow,
+              tertiary: kSecondaryColorGrey,
+              onBackground: kBgLightBlue,
+              error: kErrorColor,
+              onSecondary: kSecondaryColorSemiGrey,
             ),
-            BlocProvider(
-              create: (context) => sl<GroupCubit>(),
-            ),
-          ],
-          child: BlocListener<AuthCubit, AuthState>(
-            listener: (context, state) {
-              if (state is Authenticated) {
-                context.go('/main');
-              } else if (state is UnAuthenticated) {
-                context.go('/');
-              }
-            },
-            child: MaterialApp.router(
-              routerDelegate: router.routerDelegate,
-              routeInformationParser: router.routeInformationParser,
-              routeInformationProvider: router.routeInformationProvider,
-              debugShowCheckedModeBanner: false,
-              title: 'Washer',
-              theme: ThemeData(
-                useMaterial3: true,
-                primaryColor: kPrimaryColor,
-                colorScheme: const ColorScheme.light(
-                  background: kSecondaryColorLightGrey,
-                  secondary: kSecondaryColorYellow,
-                  tertiary: kSecondaryColorGrey,
-                  onBackground: kBgLightBlue,
-                  error: kErrorColor,
-                  onSecondary: kSecondaryColorSemiGrey,
-                ),
+          ),
+          home: MultiBlocProvider(
+            providers: [
+              BlocProvider(
+                create: (context) => sl<AuthCubit>()..userCheck(),
               ),
-            ),
+              BlocProvider(
+                create: (context) => sl<GroupCubit>(),
+              ),
+              BlocProvider(
+                create: (context) => sl<BookingCubit>(),
+              ),
+              BlocProvider(
+                create: (context) => sl<TodayBookingCubit>(),
+              ),
+              BlocProvider(
+                create: (context) => sl<RecordCubit>(),
+              ),
+              BlocProvider(
+                create: (context) => sl<RiderCubit>()..streamRiders(),
+              ),
+            ],
+            child: const AuthManager(),
           ),
         );
       },

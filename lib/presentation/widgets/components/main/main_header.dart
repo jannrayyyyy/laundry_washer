@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:general/general.dart';
+import 'package:laundry_washer/core/utils/custom_function.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
+import 'package:flutter_timer_countdown/flutter_timer_countdown.dart';
+import '../../../cubits/group/group_cubit.dart';
 
 class MainHeader extends StatelessWidget {
   final TextEditingController? controller;
@@ -49,26 +53,45 @@ class MainHeader extends StatelessWidget {
             ],
           ),
           const Spacer(flex: 1),
-          Container(
-            height: 6.h,
-            width: 15.w,
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.secondary,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CustomText(
-                  '00:00:00:00',
-                  size: 12.sp,
-                ),
-                const CustomText('Time remaining'),
-              ],
-            ),
+          BlocBuilder<GroupCubit, GroupState>(
+            builder: (context, state) {
+              if (state is SingleGroupLoaded) {
+                show('loaded');
+                final time = CustomFunction.getTimeShift(state.group.shift);
+                show("time1: ${time.split('-')[0]}");
+                show("time2: ${time.split('-')[1]}");
+                show('day: ${DateTime.now().day}');
+                return Container(
+                  padding: EdgeInsets.all(1.h),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.secondary,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: TimerCountdown(
+                    format: CountDownTimerFormat.hoursMinutesSeconds,
+                    endTime: DateTime(
+                      DateTime.now().year,
+                      DateTime.now().month,
+                      DateTime.now().day,
+                      int.parse(
+                        time.split('-')[1],
+                      ),
+                    ),
+                  ),
+                );
+              }
+              return const SizedBox();
+            },
           ),
         ],
       ),
     );
   }
 }
+
+// TimeOfDay(
+//                                 hour = int.parse(
+//                                     time.split(' - ')[0].split(':')[0]),
+//                                 minute = int.parse(
+//                                     time.split(' - ')[0].split(':')[1]))
+//                             .format(context)

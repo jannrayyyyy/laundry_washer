@@ -80,6 +80,7 @@ class _GroupPickingScreenState extends State<GroupPickingScreen> {
               builder: (context, state) {
                 if (state is GroupLoaded) {
                   show('group loaded');
+                  show('datas: ${state.groups}');
                   return Wrap(
                       spacing: 5.w,
                       runSpacing: 5.h,
@@ -87,6 +88,7 @@ class _GroupPickingScreenState extends State<GroupPickingScreen> {
                           .map(
                             (e) => GroupContainer(
                               images: mockImages,
+                              group: e,
                             ),
                           )
                           .toList());
