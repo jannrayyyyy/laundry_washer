@@ -6,6 +6,7 @@ import 'package:general/general.dart';
 import 'package:group_button/group_button.dart';
 import 'package:iconify_flutter/iconify_flutter.dart';
 import 'package:iconify_flutter/icons/majesticons.dart';
+import 'package:laundry_washer/core/utils/custom_function.dart';
 import 'package:laundry_washer/main.dart';
 import 'package:laundry_washer/presentation/cubits/auth/auth_cubit.dart';
 import 'package:laundry_washer/presentation/cubits/bookings/bookings_cubit.dart';
@@ -98,6 +99,7 @@ class _MainScreenState extends State<MainScreen> {
                     buttonBuilder: (selected, value, context) {
                       return CustomCircularButton(
                         text: value.toString(),
+                        label: CustomFunction.getButtonValue(value),
                         color: selected
                             ? Theme.of(context).primaryColor
                             : Theme.of(context).colorScheme.onSecondary,

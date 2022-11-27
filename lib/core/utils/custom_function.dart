@@ -65,4 +65,19 @@ class CustomFunction {
         return '';
     }
   }
+
+  static String getButtonValue(int index) {
+    switch (index) {
+      case 1:
+        return 'CHECK IN';
+      case 2:
+        return 'WASH';
+      case 3:
+        return 'COMPLETED';
+      case 4:
+        return 'CHECK OUT';
+      default:
+        return '';
+    }
+  }
 }

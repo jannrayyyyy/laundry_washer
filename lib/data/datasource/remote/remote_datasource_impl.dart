@@ -22,7 +22,7 @@ class RemoteDataSourceImpl implements RemoteDataSource {
       show('groupname: ${e['groupName']}');
       return GroupModel.fromMap(e.data());
     }).toList();
-    show('group lengtg: ${groups.length}');
+    show('group length: ${groups.length}');
     return groups;
   }
 
@@ -44,6 +44,7 @@ class RemoteDataSourceImpl implements RemoteDataSource {
     return db
         .collection('bookings')
         .where('bookingStatus', whereIn: [2, 3, 4, 5, 6])
+        // .where('hub', isEqualTo: 'hub')
         .snapshots()
         .map((event) =>
             event.docs.map((e) => BookingModel.fromMap(e.data())).toList());
@@ -101,8 +102,12 @@ class RemoteDataSourceImpl implements RemoteDataSource {
 
   @override
   Stream<List<RiderModel>> streamRiders() {
-    return db.collection('rider').snapshots().map((event) =>
-        event.docs.map((e) => RiderModel.fromMap(e.data())).toList());
+    return db
+        .collection('rider')
+        // .where('hub', isEqualTo: 'hub')
+        .snapshots()
+        .map((event) =>
+            event.docs.map((e) => RiderModel.fromMap(e.data())).toList());
   }
 
   @override
